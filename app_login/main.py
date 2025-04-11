@@ -1,52 +1,35 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import mysql.connector
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 
 app = FastAPI()
 
-# Configuración de la base de datos (con claves correctas)
-db_config = {
-    "host": "gateway01.us-east-1.prod.aws.tidbcloud.com",
-    "port": 4000,
-    "user": "Tcwsmq6TvJV4Yp9.root",
-    "password": "DY1CkEYxao5YJMdU",
-    "database": "test"
-}
-
-# Modelo de datos para login
-class LoginRequest(BaseModel):
+# Modelo de entrada para el login
+class LoginData(BaseModel): 
     email: str
     password: str
 
-# Función para conexión a la base de datos
-def get_db_connection():
-    connection = mysql.connector.connect(**db_config)
-    return connection
-
-# Ruta para login
 @app.post("/login")
-def login(login_request: LoginRequest):
+def login(data: LoginData):
     try:
-        connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
-        query = "SELECT * FROM login WHERE email = %s AND password = %s"
-        cursor.execute(query, (login_request.email, login_request.password))
+        conn = mysql.connector.connect(
+            host="gateway01.us-east-1.prod.aws.tidbcloud.com",
+            port=4000,
+            user="Tcwsmq6TvJV4Yp9.root",
+            password="DY1CkEYxao5YJMdU",
+            database="test",
+            ssl_ca="C:/Users/SENA/Desktop/login2/ca.pem"
+        )
+        cursor = conn.cursor(buffered=True)  # <--- ESTA ES LA CLAVE
+        cursor.execute("SELECT * FROM login WHERE email=%s AND password=%s", (data.email, data.password))
         user = cursor.fetchone()
         cursor.close()
-        connection.close()
+        conn.close()
 
         if user:
-            return {"message": "Login exitoso", "user": user}
+            return {"message": "Login exitoso", "user": {"email": user[0]}}
         else:
-            return JSONResponse(status_code=401, content={"detail": "Credenciales incorrectas"})
-
-    except mysql.connector.Error as err:
-        return JSONResponse(status_code=500, content={"detail": str(err)})
-
-# Ruta de prueba
-@app.get("/")
-def read_root():
-    return {"message": "Servidor FastAPI activo"}
+            raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    except Exception as e:
+        print("ERROR EN EL SERVIDOR:", e)
+        raise HTTPException(status_code=500, detail=str(e))

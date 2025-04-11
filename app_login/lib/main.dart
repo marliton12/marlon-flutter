@@ -7,8 +7,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -20,24 +18,24 @@ class MyApp extends StatelessWidget {
 }
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
   @override
-  // ignore: library_private_types_in_public_api
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Controladores para los campos de texto
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  // Variable para controlar el estado de carga
   bool _isLoading = false;
 
+  // Método para realizar el login
   Future<void> _login() async {
     final String email = _emailController.text;
     final String password = _passwordController.text;
 
-    final Uri url = Uri.parse('http://192.168.1.35:8000/login');
-
+    final Uri url = Uri.parse('http://10.0.2.2:8000/login'); // Asegúrate de que la URL sea de tipo Uri
     print('URL: $url');
     print('Email: $email');
     print('Password: $password');
@@ -78,35 +76,39 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Método para mostrar el diálogo de éxito
   void _showSuccessDialog(BuildContext context, String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Login exitoso'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Login exitoso'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
+  // Método para mostrar el diálogo de error
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('OK'),
+      builder:
+          (context) => AlertDialog(
+            title: Text('Error de login'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -130,10 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 20),
             _isLoading
                 ? CircularProgressIndicator()
-                : ElevatedButton(
-                    onPressed: _login,
-                    child: Text('Login'),
-                  ),
+                : ElevatedButton(onPressed: _login, child: Text('Login')),
           ],
         ),
       ),
